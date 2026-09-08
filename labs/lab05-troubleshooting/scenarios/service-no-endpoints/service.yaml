@@ -1,0 +1,18 @@
+# Manifiesto de configuración del Escenario 3. El selector de abajo, a
+# propósito, no coincide con las labels del Pod en deployment.yaml (app:
+# catalog-backend contra el app: catalog del Pod). Esta es la falla que
+# los estudiantes deben encontrar.
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog
+  labels:
+    app: catalog
+    lab: lab05
+spec:
+  selector:
+    app: catalog-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

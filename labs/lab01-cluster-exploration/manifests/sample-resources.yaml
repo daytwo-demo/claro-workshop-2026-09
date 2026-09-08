@@ -1,0 +1,61 @@
+# Recursos precargados para el Lab 1 - Exploración del clúster.
+#
+# Tu instructor los aplica por ti (vía scripts/instructor-setup.sh) antes de
+# que empiece el workshop. No necesitas aplicar este archivo tú mismo; está
+# acá para que lo leas después del lab, si quieres comparar lo que
+# encontraste con lo que realmente se desplegó.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-inventory
+  labels:
+    app: sample-inventory
+    lab: lab01
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sample-inventory
+  template:
+    metadata:
+      labels:
+        app: sample-inventory
+        lab: lab01
+    spec:
+      containers:
+        - name: sample-inventory
+          image: docker.io/openshift/hello-openshift:v3.9.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RESPONSE
+              value: "sample-inventory is running"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-inventory
+  labels:
+    app: sample-inventory
+    lab: lab01
+spec:
+  selector:
+    app: sample-inventory
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: sample-inventory
+  labels:
+    app: sample-inventory
+    lab: lab01
+spec:
+  to:
+    kind: Service
+    name: sample-inventory
+  port:
+    targetPort: http

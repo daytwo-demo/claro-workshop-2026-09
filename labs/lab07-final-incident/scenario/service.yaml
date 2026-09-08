@@ -1,0 +1,18 @@
+# Configuración del incidente del Lab 7. El selector de abajo, a
+# propósito, no coincide con las labels del Pod en deployment.yaml. No
+# leas este archivo hasta después de haber entregado tu reporte de
+# incidente.
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments-api
+  labels:
+    app: payments-api
+    lab: lab07
+spec:
+  selector:
+    app: payments-processor
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

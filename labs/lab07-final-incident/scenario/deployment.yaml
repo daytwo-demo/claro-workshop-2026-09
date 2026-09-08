@@ -1,0 +1,30 @@
+# Configuración del incidente del Lab 7. Tu instructor lo aplica antes de
+# este lab. No leas este archivo hasta después de haber entregado tu
+# reporte de incidente: hacerlo antes anula por completo el propósito del
+# ejercicio.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-api
+  labels:
+    app: payments-api
+    lab: lab07
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payments-api
+  template:
+    metadata:
+      labels:
+        app: payments-api
+        lab: lab07
+    spec:
+      containers:
+        - name: payments-api
+          image: docker.io/openshift/hello-openshift:v3.9.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RESPONSE
+              value: "payments-api is running"

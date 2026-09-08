@@ -1,0 +1,59 @@
+# Manifiesto de configuración del Escenario 1. Tu instructor lo aplica
+# antes de este lab; no necesitas aplicarlo tú mismo. Léelo solo después
+# de haber completado tu diagnóstico, para comparar notas.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+    lab: lab05
+    scenario: imagepullbackoff
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        lab: lab05
+    spec:
+      containers:
+        - name: frontend
+          image: docker.io/openshift/hello-openshift:v9.9.9
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RESPONSE
+              value: "frontend is running"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+    lab: lab05
+spec:
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+    lab: lab05
+spec:
+  to:
+    kind: Service
+    name: frontend
+  port:
+    targetPort: http

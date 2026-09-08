@@ -1,0 +1,11 @@
+# Completa el TODO, y luego: oc apply -f manifests/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-openshift-config
+  labels:
+    app: hello-openshift
+    lab: lab03
+data:
+  # TODO: define este valor como "Hello from a ConfigMap"
+  RESPONSE: ""

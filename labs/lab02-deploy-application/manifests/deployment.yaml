@@ -1,0 +1,32 @@
+# Lab 2 - punto de partida. Completa los dos TODO de abajo, y luego:
+#   oc apply -f manifests/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-openshift
+  labels:
+    app: hello-openshift
+    lab: lab02
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-openshift
+  template:
+    metadata:
+      labels:
+        app: hello-openshift
+        lab: lab02
+    spec:
+      containers:
+        - name: hello-openshift
+          # TODO: define la referencia de imagen. Usa la imagen pública ya
+          # existente docker.io/openshift/hello-openshift:v3.9.0 - no la construyas.
+          image: ""
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RESPONSE
+              # TODO: define este valor para que la aplicación responda con
+              # "Hello from OpenShift Operations Workshop"
+              value: ""

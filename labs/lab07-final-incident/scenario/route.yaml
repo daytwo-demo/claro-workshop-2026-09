@@ -1,0 +1,13 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: payments-api
+  labels:
+    app: payments-api
+    lab: lab07
+spec:
+  to:
+    kind: Service
+    name: payments-api
+  port:
+    targetPort: http

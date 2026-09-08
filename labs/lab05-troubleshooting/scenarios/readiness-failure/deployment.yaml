@@ -1,0 +1,36 @@
+# Manifiesto de configuración del Escenario 4. Tu instructor lo aplica
+# antes de este lab; no necesitas aplicarlo tú mismo. Léelo solo después
+# de haber completado tu diagnóstico, para comparar notas.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications
+  labels:
+    app: notifications
+    lab: lab05
+    scenario: readiness-failure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notifications
+  template:
+    metadata:
+      labels:
+        app: notifications
+        lab: lab05
+    spec:
+      containers:
+        - name: notifications
+          image: docker.io/openshift/hello-openshift:v3.9.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RESPONSE
+              value: "notifications is running"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8081
+            initialDelaySeconds: 3
+            periodSeconds: 5

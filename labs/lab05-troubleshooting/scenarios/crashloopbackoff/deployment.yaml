@@ -1,0 +1,34 @@
+# Manifiesto de configuración del Escenario 2. Tu instructor lo aplica
+# antes de este lab; no necesitas aplicarlo tú mismo. Léelo solo después
+# de haber completado tu diagnóstico, para comparar notas.
+#
+# Usa una imagen UBI pública existente (sin construir ninguna imagen
+# personalizada) cuyo comando a propósito loguea un mensaje y sale con
+# código distinto de cero, para que el Pod entre de forma confiable en
+# CrashLoopBackOff.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders
+  labels:
+    app: orders
+    lab: lab05
+    scenario: crashloopbackoff
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders
+  template:
+    metadata:
+      labels:
+        app: orders
+        lab: lab05
+    spec:
+      containers:
+        - name: orders
+          image: registry.access.redhat.com/ubi9/ubi-minimal:9.4
+          command:
+            - /bin/sh
+            - -c
+            - "echo 'orders: fatal configuration error, exiting'; exit 1"

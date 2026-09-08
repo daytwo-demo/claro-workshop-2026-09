@@ -1,0 +1,49 @@
+# Se aplica DESPUÉS de que manifests/deployment.yaml ya funciona, para
+# romper el readiness a propósito. La única diferencia con la versión que
+# funciona es el puerto del readinessProbe: 8081 en vez de 8080. El
+# contenedor sigue escuchando solo en 8080, así que cada intento de probe
+# falla con "connection refused", y el Pod se queda Running pero nunca
+# llega a Ready.
+#
+#   oc apply -f broken/deployment-bad-readiness.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-openshift
+  labels:
+    app: hello-openshift
+    lab: lab04
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-openshift
+  template:
+    metadata:
+      labels:
+        app: hello-openshift
+        lab: lab04
+    spec:
+      containers:
+        - name: hello-openshift
+          image: docker.io/openshift/hello-openshift:v3.9.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RESPONSE
+              valueFrom:
+                configMapKeyRef:
+                  name: hello-openshift-config
+                  key: RESPONSE
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8081
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10

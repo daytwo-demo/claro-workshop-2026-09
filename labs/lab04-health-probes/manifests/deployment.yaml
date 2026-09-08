@@ -1,0 +1,46 @@
+# Agrega readiness y liveness probes al Deployment del Lab 3. Completa los
+# dos TODO (ambos probes deben apuntar al puerto y path reales de la
+# aplicación), y luego: oc apply -f manifests/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-openshift
+  labels:
+    app: hello-openshift
+    lab: lab04
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-openshift
+  template:
+    metadata:
+      labels:
+        app: hello-openshift
+        lab: lab04
+    spec:
+      containers:
+        - name: hello-openshift
+          image: docker.io/openshift/hello-openshift:v3.9.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RESPONSE
+              valueFrom:
+                configMapKeyRef:
+                  name: hello-openshift-config
+                  key: RESPONSE
+          readinessProbe:
+            httpGet:
+              path: /
+              # TODO: ¿en qué puerto escucha realmente este contenedor?
+              port: 0
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              # TODO: el mismo puerto que arriba
+              port: 0
+            initialDelaySeconds: 10
+            periodSeconds: 10

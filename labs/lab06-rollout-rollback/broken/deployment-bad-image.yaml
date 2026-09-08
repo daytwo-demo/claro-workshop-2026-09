@@ -1,0 +1,30 @@
+# Revisión 3: un rollout deliberadamente roto, aplicado sobre una
+# revisión 2 que funciona. Aplícalo una vez que tengas la versión 2
+# corriendo:
+#   oc apply -f broken/deployment-bad-image.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-openshift
+  labels:
+    app: hello-openshift
+    lab: lab06
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello-openshift
+  template:
+    metadata:
+      labels:
+        app: hello-openshift
+        lab: lab06
+    spec:
+      containers:
+        - name: hello-openshift
+          image: docker.io/openshift/hello-openshift:v9.9.9
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RESPONSE
+              value: "Application version 3"

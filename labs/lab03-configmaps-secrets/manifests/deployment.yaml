@@ -1,0 +1,46 @@
+# Versión actualizada del Deployment del Lab 2: RESPONSE ahora viene del
+# ConfigMap, y dos nuevas env vars vienen del Secret, en vez de un valor
+# hardcodeado. Completa los TODO, y luego:
+#   oc apply -f manifests/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-openshift
+  labels:
+    app: hello-openshift
+    lab: lab03
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-openshift
+  template:
+    metadata:
+      labels:
+        app: hello-openshift
+        lab: lab03
+    spec:
+      containers:
+        - name: hello-openshift
+          image: docker.io/openshift/hello-openshift:v3.9.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RESPONSE
+              valueFrom:
+                configMapKeyRef:
+                  # TODO: nombre del ConfigMap que creaste
+                  name: ""
+                  # TODO: key dentro de ese ConfigMap
+                  key: ""
+            - name: SECRET_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  # TODO: nombre del Secret que creaste
+                  name: ""
+                  key: username
+            - name: SECRET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ""
+                  key: password
