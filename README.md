@@ -160,3 +160,14 @@ labs/lab06.../            Rollout y rollback
 labs/lab07.../            Incidente final
 scripts/                  Scripts de setup, reset y validación
 ```
+
+## Repositorios relacionados
+
+- [`claro-workshop-2026-09-showroom`](https://github.com/daytwo-demo/claro-workshop-2026-09-showroom):
+  esta misma guía de labs en formato web navegable, publicada en
+  https://daytwo-demo.github.io/claro-workshop-2026-09-showroom/.
+- [`claro-workshop-2026-09-app`](https://github.com/daytwo-demo/claro-workshop-2026-09-app):
+  código fuente y Dockerfile de PodPet, una app de ejemplo (Java/Quarkus,
+  sin base de datos) que muestra cómo se construye una imagen como
+  `hello-openshift` antes de que este workshop la use. Ningún lab la
+  referencia todavía; es un recurso opcional para instructores.
