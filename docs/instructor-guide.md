@@ -106,20 +106,24 @@ raíz y `docs/prerequisites.md`.
   encriptación.
 - **Duración estimada:** 30 minutos.
 - **Dificultad esperada para el estudiante:** baja-media.
-- **Recursos creados:** ConfigMap `hello-openshift-config`, Secret
-  `hello-openshift-credentials`, Deployment `hello-openshift`
-  actualizado.
-- **Salida esperada:** `curl` contra la Route devuelve "Hello from a
-  ConfigMap"; `oc exec` dentro del Pod muestra ambos valores del
-  Secret en el entorno.
+- **Cambio de aplicación:** este lab introduce **PodPet** (Java/Quarkus,
+  sin base de datos), que se usa el resto del workshop. Los Labs 1-2 se
+  quedan con `hello-openshift` a propósito, por ser más mínima. A
+  diferencia de los labs anteriores, acá también hay que crear Service
+  y Route nuevos (no son una continuación de los de `hello-openshift`).
+- **Recursos creados:** ConfigMap `podpet-config`, Secret
+  `podpet-credentials`, Deployment/Service/Route `podpet`.
+- **Salida esperada:** `curl .../api/pet` devuelve `"name"` con el
+  valor configurado en el ConfigMap; `oc exec` dentro del Pod muestra
+  ambos valores del Secret en el entorno.
 - **Errores comunes:** esperar que editar un ConfigMap in place, solo
   eso, dispare un rollout nuevo (no lo hace: solo lo hace el Deployment
   cambiado); esperar que los valores del Secret aparezcan en la
-  respuesta HTTP (no aparecen: `hello-openshift` solo refleja
-  `RESPONSE`).
+  respuesta de la API (no aparecen: PodPet no los usa para nada);
+  buscar un Service `hello-openshift` que ya no aplica en este lab.
 - **Pistas que puede dar el instructor:** "Si solo cambiaste el
   ConfigMap y no el Deployment, ¿los Pods existentes se darían
-  cuenta?" "¿De dónde lee la aplicación `RESPONSE` ahora?"
+  cuenta?" "¿De dónde lee la aplicación `PET_NAME` ahora?"
 - **Solución completa:** ver
   `labs/lab03-configmaps-secrets/solution.md`.
 - **Procedimiento de reset:**
@@ -136,33 +140,60 @@ raíz y `docs/prerequisites.md`.
 
 - **Objetivo de aprendizaje:** distinguir "el contenedor está
   corriendo" de "la aplicación está lista"; leer fallas de probe a
-  partir de los events del Pod.
+  partir de los events del Pod; distinguir un probe mal configurado de
+  una falla de salud real reportada por la propia aplicación.
 - **Duración estimada:** 30-35 minutos.
 - **Dificultad esperada para el estudiante:** media. Este es el primer
   lab donde un Pod se ve sano a primera vista (`Running`) mientras en
-  realidad está roto (`0/1` Ready).
+  realidad está roto (`0/1` Ready), y también el primero donde la
+  aplicación misma decide reportarse como no saludable.
+- **PodPet expone salud real:** `/q/health/ready` siempre `UP`;
+  `/q/health/live` cae a `DOWN` (503) de verdad si el promedio de
+  ánimo/saciedad/energía se sostiene por debajo de 20 durante más de
+  ~10 segundos. El endpoint `POST /api/pet/neglect` fuerza ese estado
+  al instante, para que el escenario sea reproducible en minutos.
 
-### Cadena de troubleshooting (funciona -> se rompe -> se repara)
+### Parte 1: readiness mal configurada (mecánica)
 
 ```
 SÍNTOMA        El Pod se queda Running, la columna READY trabada en 0/1
-OBSERVACIÓN    oc get pods -l app=hello-openshift muestra 0/1 Ready, los reinicios se quedan en 0
+OBSERVACIÓN    oc get pods -l app=podpet muestra 0/1 Ready, los reinicios se quedan en 0
 EVIDENCIA      oc describe pod: "Readiness probe failed: ... dial tcp ...:8081: connection refused"
 CAUSA RAÍZ     readinessProbe.httpGet.port es 8081; el contenedor solo escucha en 8080
 ARREGLO        volver a poner readinessProbe.httpGet.port en 8080
 VALIDACIÓN     oc get pods muestra 1/1 Ready; el conteo de reinicios no cambió
 ```
 
-- **Recursos creados:** Deployment `hello-openshift` actualizado
-  (agrega probes), después la variante rota, después la variante
-  reparada.
+### Parte 2: liveness real (negligencia de la mascota)
+
+```
+SÍNTOMA        Unos 20-30s después de curl .../api/pet/neglect, RESTARTS sube en uno
+OBSERVACIÓN    oc get pods -l app=podpet -w muestra el Pod recreándose solo
+EVIDENCIA      oc describe pod: "Liveness probe failed: HTTP probe failed with statuscode: 503"
+               seguido de "Killing ... will be restarted"
+CAUSA RAÍZ     el liveness check de la app (no el cluster) reportó DOWN de verdad
+ARREGLO        ninguno necesario: el propio reinicio resetea las stats de la mascota a 80/80/80
+VALIDACIÓN     oc get pods vuelve a 1/1 Ready; RESTARTS quedó en +1 (a diferencia de la Parte 1)
+```
+
+Este es el contraste pedagógico central del lab: en la Parte 1 el
+*cluster* está mal configurado (el probe apunta a un puerto que no es);
+en la Parte 2 la *aplicación* reporta genuinamente no estar bien.
+`RESTARTS` es la señal que las distingue: se queda en 0 en la Parte 1,
+sube en la Parte 2.
+
+- **Recursos creados:** Deployment `podpet` actualizado (agrega
+  probes), después la variante con readiness rota, después reparada.
 - **Errores comunes:** recurrir primero a `oc logs` en vez de a la
   sección Events de `oc describe pod`; no notar que el conteo de
-  reinicios se queda en 0, que es la señal clave de que esto es un
-  problema de readiness y no un crash.
+  reinicios se queda en 0 en la Parte 1, que es la señal clave de que
+  eso es un problema de readiness y no un crash; en la Parte 2, esperar
+  que el Pod quede "caído" (se recupera solo al reiniciar, porque las
+  stats vuelven a valores sanos).
 - **Pistas que puede dar el instructor:** "¿El contenedor realmente
   está fallando al correr, o algo más está decidiendo que no está
-  listo?" "¿Qué te dice el conteo de reinicios?"
+  listo?" "¿Qué te dice el conteo de reinicios?" "¿Quién decidió que la
+  Parte 2 estaba mal: el cluster, o la aplicación?"
 - **Solución completa:** ver `labs/lab04-health-probes/solution.md`.
 - **Procedimiento de reset:**
   ```bash
@@ -188,9 +219,9 @@ VALIDACIÓN     oc get pods muestra 1/1 Ready; el conteo de reinicios no cambió
 ```
 SÍNTOMA        El Pod nunca llega a Running
 OBSERVACIÓN    oc get pods -l app=frontend muestra ImagePullBackOff
-EVIDENCIA      oc describe pod: "Failed to pull image ...:v9.9.9 ... not found"
+EVIDENCIA      oc describe pod: "Failed to pull image ...podpet:v9.9.9 ... not found"
 CAUSA RAÍZ     El Deployment referencia un tag inexistente (v9.9.9)
-ARREGLO        oc set image deployment/frontend frontend=docker.io/openshift/hello-openshift:v3.9.0
+ARREGLO        oc set image deployment/frontend frontend=ghcr.io/daytwo-demo/podpet:v1.0.0
 VALIDACIÓN     oc get pods -l app=frontend muestra Running, 1/1
 ```
 
@@ -239,6 +270,12 @@ ARREGLO        oc patch deployment notifications --type=json -p '[{"op":"replace
 VALIDACIÓN     oc get pods -l app=notifications muestra 1/1 Ready
 ```
 
+`frontend`, `catalog` y `notifications` corren la imagen `podpet`; al
+arreglarlos, los estudiantes van a ver la UI de la mascota. `orders`
+(Escenario 2) sigue usando una imagen UBI mínima a propósito: ese
+escenario es sobre la mecánica de un crash loop, no sobre la
+aplicación.
+
 - **Errores comunes:** aplicar un arreglo al objeto equivocado (por
   ejemplo, editar las labels del Pod en vez del selector del Service
   en el Escenario 3); asumir que `RESTARTS` subiendo significa que todo
@@ -264,18 +301,19 @@ VALIDACIÓN     oc get pods -l app=notifications muestra 1/1 Ready
   un Deployment mal configurado.
 - **Duración estimada:** 25-30 minutos.
 - **Dificultad esperada para el estudiante:** baja-media.
-- **Recursos creados:** Deployment/Service/Route `hello-openshift`
-  (revisión 1), después las revisiones 2 y 3 (la 3 es
-  deliberadamente rota).
+- **Recursos creados:** Deployment/Service/Route `podpet` (revisión 1),
+  después las revisiones 2 y 3 (la 3 es deliberadamente rota). El
+  marcador de versión es `PET_NAME`, el mismo mecanismo que ya usaron
+  con `RESPONSE` en `hello-openshift`.
 
 ```
 SÍNTOMA        oc rollout status nunca se completa después de publicar la "versión 3"
-OBSERVACIÓN    oc get pods -l app=hello-openshift: un Pod nuevo trabado en ImagePullBackOff,
+OBSERVACIÓN    oc get pods -l app=podpet: un Pod nuevo trabado en ImagePullBackOff,
                los Pods viejos de la revisión 2 siguen Running (la Route sigue sirviendo v2)
-EVIDENCIA      oc describe pod en el Pod nuevo: imagen ...:v9.9.9 not found
+EVIDENCIA      oc describe pod en el Pod nuevo: imagen ...podpet:v9.9.9 not found
 CAUSA RAÍZ     la revisión 3 referencia un tag de imagen inexistente
-ARREGLO        oc rollout undo deployment/hello-openshift
-VALIDACIÓN     oc rollout status reporta éxito; curl devuelve "Application version 2"
+ARREGLO        oc rollout undo deployment/podpet
+VALIDACIÓN     oc rollout status reporta éxito; curl .../api/pet devuelve "Application version 2"
 ```
 
 - **Errores comunes:** eliminar el Pod trabado esperando que eso

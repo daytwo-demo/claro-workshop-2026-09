@@ -121,6 +121,19 @@ Una división sugerida:
 - **Día 2**: Labs 5-7 (troubleshooting, rollout/rollback, incidente
   final).
 
+## Aplicaciones usadas
+
+- **Labs 1-2**: `docker.io/openshift/hello-openshift:v3.9.0`,
+  deliberadamente mínima, para aprender la mecánica de
+  Deployment/Service/Route/scaling sin distracciones.
+- **Labs 3-7**: `ghcr.io/daytwo-demo/podpet:v1.0.0` (PodPet), una
+  mascota virtual (Java/Quarkus, sin base de datos) con su propia UI,
+  API, y un liveness check real ligado a sus propias stats. El código
+  fuente vive en
+  [`claro-workshop-2026-09-app`](https://github.com/daytwo-demo/claro-workshop-2026-09-app).
+
+Ambas son imágenes ya publicadas: ningún lab las construye.
+
 ## Reiniciar tu entorno
 
 Si un lab deja tu project en un estado que no entiendes, o simplemente
@@ -167,7 +180,7 @@ scripts/                  Scripts de setup, reset y validación
   esta misma guía de labs en formato web navegable, publicada en
   https://daytwo-demo.github.io/claro-workshop-2026-09-showroom/.
 - [`claro-workshop-2026-09-app`](https://github.com/daytwo-demo/claro-workshop-2026-09-app):
-  código fuente y Dockerfile de PodPet, una app de ejemplo (Java/Quarkus,
-  sin base de datos) que muestra cómo se construye una imagen como
-  `hello-openshift` antes de que este workshop la use. Ningún lab la
-  referencia todavía; es un recurso opcional para instructores.
+  código fuente y Dockerfile de PodPet, la mascota virtual (Java/Quarkus,
+  sin base de datos) que se usa desde el Lab 3 en adelante. Muestra cómo
+  se construye y publica una imagen como esta, o como `hello-openshift`,
+  antes de que el workshop las use: ningún lab construye nada.

@@ -3,26 +3,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hello-openshift
+  name: podpet
   labels:
-    app: hello-openshift
+    app: podpet
     lab: lab06
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: hello-openshift
+      app: podpet
   template:
     metadata:
       labels:
-        app: hello-openshift
+        app: podpet
         lab: lab06
     spec:
       containers:
-        - name: hello-openshift
-          image: docker.io/openshift/hello-openshift:v3.9.0
+        - name: podpet
+          image: ghcr.io/daytwo-demo/podpet:v1.0.0
           ports:
             - containerPort: 8080
           env:
-            - name: RESPONSE
+            - name: PET_NAME
               value: "Application version 1"

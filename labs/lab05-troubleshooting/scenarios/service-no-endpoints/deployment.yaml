@@ -22,9 +22,9 @@ spec:
     spec:
       containers:
         - name: catalog
-          image: docker.io/openshift/hello-openshift:v3.9.0
+          image: ghcr.io/daytwo-demo/podpet:v1.0.0
           ports:
             - containerPort: 8080
           env:
-            - name: RESPONSE
-              value: "catalog is running"
+            - name: PET_NAME
+              value: "catalog"

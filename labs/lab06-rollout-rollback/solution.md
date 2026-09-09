@@ -6,26 +6,26 @@
 oc apply -f manifests/deployment.yaml
 oc apply -f manifests/service.yaml
 oc apply -f manifests/route.yaml
-oc rollout status deployment/hello-openshift
+oc rollout status deployment/podpet
 
-HOST=$(oc get route hello-openshift -o jsonpath='{.spec.host}')
-curl "http://${HOST}"        # Application version 1
+HOST=$(oc get route podpet -o jsonpath='{.spec.host}')
+curl "http://${HOST}/api/pet"        # "name":"Application version 1"
 
-oc set env deployment/hello-openshift RESPONSE="Application version 2"
-oc rollout status deployment/hello-openshift
-oc rollout history deployment/hello-openshift
-curl "http://${HOST}"        # Application version 2
+oc set env deployment/podpet PET_NAME="Application version 2"
+oc rollout status deployment/podpet
+oc rollout history deployment/podpet
+curl "http://${HOST}/api/pet"        # "name":"Application version 2"
 
 oc apply -f broken/deployment-bad-image.yaml
-oc rollout status deployment/hello-openshift
-oc get pods -l app=hello-openshift
-oc describe pod -l app=hello-openshift
-# -> ImagePullBackOff en docker.io/openshift/hello-openshift:v9.9.9
+oc rollout status deployment/podpet
+oc get pods -l app=podpet
+oc describe pod -l app=podpet
+# -> ImagePullBackOff en ghcr.io/daytwo-demo/podpet:v9.9.9
 
-oc rollout history deployment/hello-openshift
-oc rollout undo deployment/hello-openshift
-oc rollout status deployment/hello-openshift
-curl "http://${HOST}"        # de vuelta a Application version 2
+oc rollout history deployment/podpet
+oc rollout undo deployment/podpet
+oc rollout status deployment/podpet
+curl "http://${HOST}/api/pet"        # de vuelta a "name":"Application version 2"
 ```
 
 ## Comportamiento esperado durante el rollout roto
@@ -39,7 +39,7 @@ versión 2** todo el tiempo, con `oc rollout status` reportando algo
 como:
 
 ```
-Waiting for deployment "hello-openshift" rollout to finish: 1 out of 2
+Waiting for deployment "podpet" rollout to finish: 1 out of 2
 new replicas have been updated...
 ```
 
@@ -55,13 +55,16 @@ en un estado trabado, a medio actualizar, hasta que alguien actúa.
   que el rollback opera a nivel de configuración/revisión, nunca a
   nivel de Pod individual.
 - `oc rollout history` solo muestra números de revisión por defecto;
-  usa `oc rollout history deployment/hello-openshift --revision=<n>`
-  para ver exactamente qué cambió en una revisión dada, si los
-  estudiantes preguntan.
+  usa `oc rollout history deployment/podpet --revision=<n>` para ver
+  exactamente qué cambió en una revisión dada, si los estudiantes
+  preguntan.
 - Asegúrate de que cada estudiante pueda explicar, sin que se lo
   pidas, por qué `oc delete pod` no habría arreglado el problema de la
   versión 3 (se habría creado un Pod nuevo a partir del mismo template
   roto).
+- Es la misma app que en los Labs 3-5, así que si algún estudiante ya
+  tiene el hábito de mirar `oc describe pod`, `oc get events` y `oc
+  logs --previous` de labs anteriores, este lab premia justamente eso.
 
 ## Errores comunes
 

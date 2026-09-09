@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: hello-openshift-config
+  name: podpet-config
   labels:
-    app: hello-openshift
+    app: podpet
     lab: lab03
 data:
-  # TODO: define este valor como "Hello from a ConfigMap"
-  RESPONSE: ""
+  # TODO: define un nombre para la mascota, por ejemplo "Configstein"
+  PET_NAME: ""

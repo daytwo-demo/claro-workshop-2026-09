@@ -4,7 +4,7 @@ metadata:
   name: podpet
   labels:
     app: podpet
-    lab: lab06
+    lab: lab03
 spec:
   to:
     kind: Service

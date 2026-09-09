@@ -10,10 +10,11 @@ después disparar un rollout fallido y recuperarte de él usando
 
 ## Escenario
 
-Estás corriendo `hello-openshift` en la versión 1. Vas a publicar la
-versión 2 (un cambio de configuración de rutina), después vas a
-intentar publicar la versión 3 (que resulta referenciar una imagen
-rota), y te vas a recuperar.
+Estás corriendo `podpet` en la versión 1 (usas `PET_NAME` como marcador
+de versión, igual que ya hiciste con `RESPONSE` en `hello-openshift`
+al principio del workshop). Vas a publicar la versión 2 (un cambio de
+configuración de rutina), después vas a intentar publicar la versión 3
+(que resulta referenciar una imagen rota), y te vas a recuperar.
 
 ## Tasks
 
@@ -24,33 +25,33 @@ oc apply -f manifests/deployment.yaml
 oc apply -f manifests/service.yaml
 oc apply -f manifests/route.yaml
 
-oc rollout status deployment/hello-openshift
-HOST=$(oc get route hello-openshift -o jsonpath='{.spec.host}')
-curl "http://${HOST}"
-# -> Application version 1
+oc rollout status deployment/podpet
+HOST=$(oc get route podpet -o jsonpath='{.spec.host}')
+curl "http://${HOST}/api/pet"
+# -> "name":"Application version 1"
 ```
 
 ### 2. Publicar la revisión 2
 
-Actualiza el valor de `RESPONSE` a `Application version 2`, ya sea
+Actualiza el valor de `PET_NAME` a `Application version 2`, ya sea
 editando `manifests/deployment.yaml` y reaplicando, o con:
 
 ```bash
-oc set env deployment/hello-openshift RESPONSE="Application version 2"
+oc set env deployment/podpet PET_NAME="Application version 2"
 ```
 
 Observa el rollout:
 
 ```bash
-oc rollout status deployment/hello-openshift
-oc rollout history deployment/hello-openshift
+oc rollout status deployment/podpet
+oc rollout history deployment/podpet
 ```
 
 Confirma:
 
 ```bash
-curl "http://${HOST}"
-# -> Application version 2
+curl "http://${HOST}/api/pet"
+# -> "name":"Application version 2"
 ```
 
 ### 3. Publicar una revisión rota
@@ -62,8 +63,8 @@ oc apply -f broken/deployment-bad-image.yaml
 Observa qué pasa:
 
 ```bash
-oc rollout status deployment/hello-openshift
-oc get pods -l app=hello-openshift
+oc rollout status deployment/podpet
+oc get pods -l app=podpet
 ```
 
 El rollout no se completa. Investiga por qué usando las mismas
@@ -74,17 +75,17 @@ esto, y piensa en por qué.
 ### 4. Recuperarte
 
 ```bash
-oc rollout history deployment/hello-openshift
-oc rollout undo deployment/hello-openshift
-oc rollout status deployment/hello-openshift
+oc rollout history deployment/podpet
+oc rollout undo deployment/podpet
+oc rollout status deployment/podpet
 ```
 
 ### 5. Validar
 
 ```bash
-curl "http://${HOST}"
-# -> Application version 2
-oc get pods -l app=hello-openshift
+curl "http://${HOST}/api/pet"
+# -> "name":"Application version 2"
+oc get pods -l app=podpet
 ```
 
 ## `oc delete pod` vs `oc rollout restart` vs `oc rollout undo`
@@ -127,7 +128,8 @@ oc get events --sort-by=.lastTimestamp
 
 ## Validación
 
-- Después del paso 2, la Route sirve `Application version 2`.
+- Después del paso 2, `curl .../api/pet` devuelve
+  `"name":"Application version 2"`.
 - Después del paso 3, `oc rollout status` no reporta éxito, y puedes
   nombrar la razón específica (a partir de `oc describe pod`/`oc get
   events`) por la que la revisión nueva está fallando.

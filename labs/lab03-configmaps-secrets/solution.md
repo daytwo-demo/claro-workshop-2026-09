@@ -6,12 +6,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: hello-openshift-config
+  name: podpet-config
   labels:
-    app: hello-openshift
+    app: podpet
     lab: lab03
 data:
-  RESPONSE: "Hello from a ConfigMap"
+  PET_NAME: "Configstein"
 ```
 
 ## Secret completo
@@ -20,9 +20,9 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: hello-openshift-credentials
+  name: podpet-credentials
   labels:
-    app: hello-openshift
+    app: podpet
     lab: lab03
 type: Opaque
 stringData:
@@ -34,20 +34,20 @@ stringData:
 
 ```yaml
           env:
-            - name: RESPONSE
+            - name: PET_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: hello-openshift-config
-                  key: RESPONSE
+                  name: podpet-config
+                  key: PET_NAME
             - name: SECRET_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: hello-openshift-credentials
+                  name: podpet-credentials
                   key: username
             - name: SECRET_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: hello-openshift-credentials
+                  name: podpet-credentials
                   key: password
 ```
 
@@ -57,27 +57,26 @@ stringData:
 oc apply -f manifests/configmap.yaml
 oc apply -f manifests/secret.yaml
 oc apply -f manifests/deployment.yaml
+oc apply -f manifests/service.yaml
+oc apply -f manifests/route.yaml
 
-oc rollout status deployment/hello-openshift
-oc get pods -l app=hello-openshift
+oc rollout status deployment/podpet
+oc get pods -l app=podpet
 
-HOST=$(oc get route hello-openshift -o jsonpath='{.spec.host}')
-curl "http://${HOST}"
-# -> Hello from a ConfigMap
+HOST=$(oc get route podpet -o jsonpath='{.spec.host}')
+curl "http://${HOST}/api/pet"
+# -> {"name":"Configstein","mood":80,"satiety":80,"energy":80,"aliveSeconds":...,"status":"feliz"}
 
-oc exec deploy/hello-openshift -- printenv SECRET_USERNAME SECRET_PASSWORD
+oc exec deploy/podpet -- printenv SECRET_USERNAME SECRET_PASSWORD
 ```
 
 ## Puntos de enseñanza
 
 - Editar un ConfigMap in place **no** dispara, por sí solo, un rollout
   nuevo para los Pods que lo referencian vía `configMapKeyRef`: la
-  variable de entorno solo se lee al arrancar el contenedor. Lo que
-  dispara el rollout acá es que **el Pod template del Deployment
-  cambió** (todo el bloque `env` es distinto al del Lab 2). Asegúrate
-  de que los estudiantes vean la diferencia: si solo hubieran editado
-  el ConfigMap sin reaplicar el Deployment, los Pods existentes
-  conservarían el valor viejo hasta que se reinicien.
+  variable de entorno solo se lee al arrancar el contenedor. Un
+  Deployment nuevo (como el que se aplica en este lab) sí dispara un
+  rollout, porque cambia el Pod template.
 - La codificación base64 de los datos de un Secret es para transporte
   seguro dentro de un documento JSON/YAML, no confidencialidad.
   `oc get secret -o yaml` más `base64 -d` es todo lo que hace falta
@@ -87,22 +86,29 @@ oc exec deploy/hello-openshift -- printenv SECRET_USERNAME SECRET_PASSWORD
   restrinja quién puede hacer `get`/`list` sobre secrets, y muchas
   veces un gestor de secrets externo; nada de eso se enseña acá, y nada
   de eso es razón para poner credenciales reales en este Secret.
+- Este lab introduce una aplicación nueva (`podpet`), no una
+  continuación de `hello-openshift`: por eso hace falta crear Service y
+  Route nuevos, algo que en el diseño anterior del workshop no era
+  necesario en este punto. Vale la pena señalarlo explícitamente para
+  que nadie pierda tiempo buscando un Service `hello-openshift` que ya
+  no aplica.
 
 ## Errores comunes
 
 - Dejar `name: ""` sin completar en alguno de los tres bloques
   `valueFrom`: el Deployment se aplica sin problema, pero el Pod falla
   al arrancar con un error claro visible en `oc describe pod`
-  (`configmap ... not found` o `secret ... not found`). Úsalo como
-  puente natural hacia el énfasis del Lab 4/5 en leer los events del
-  Pod.
-- Intentar hacer `curl` y esperar ver `SECRET_USERNAME`/
-  `SECRET_PASSWORD` en la respuesta HTTP: la imagen `hello-openshift`
-  solo refleja `RESPONSE`. Las otras dos variables hay que revisarlas
+  (`configmap ... not found` o `secret ... not found`).
+- Intentar hacer `curl` a `/` en vez de `/api/pet` y no ver el nombre
+  configurado como texto plano: la UI en `/` sí lo muestra, pero
+  renderizado dentro del HTML, no como texto plano fácil de `grep`. Para
+  verificar rápido desde la terminal, `/api/pet` es más directo.
+- Intentar ver `SECRET_USERNAME`/`SECRET_PASSWORD` en la respuesta de
+  la API: PodPet no usa esas variables para nada, hay que revisarlas
   directamente en el entorno del contenedor.
 
 ## Reset
 
 ```bash
-oc delete -f manifests/deployment.yaml -f manifests/secret.yaml -f manifests/configmap.yaml --ignore-not-found
+oc delete -f manifests/route.yaml -f manifests/service.yaml -f manifests/deployment.yaml -f manifests/secret.yaml -f manifests/configmap.yaml --ignore-not-found
 ```

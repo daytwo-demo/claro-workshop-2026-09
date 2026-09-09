@@ -71,8 +71,8 @@ oc get endpoints payments-api
 # -> dos IPs de Pod en el puerto 8080
 
 HOST=$(oc get route payments-api -o jsonpath='{.spec.host}')
-curl "http://${HOST}"
-# -> payments-api is running
+curl "http://${HOST}/api/pet"
+# -> {"name":"payments-api","mood":80,"satiety":80,"energy":80,...}
 ```
 
 ## Notas de calificación para instructores

@@ -22,15 +22,15 @@ spec:
     spec:
       containers:
         - name: notifications
-          image: docker.io/openshift/hello-openshift:v3.9.0
+          image: ghcr.io/daytwo-demo/podpet:v1.0.0
           ports:
             - containerPort: 8080
           env:
-            - name: RESPONSE
-              value: "notifications is running"
+            - name: PET_NAME
+              value: "notifications"
           readinessProbe:
             httpGet:
-              path: /
+              path: /q/health/ready
               port: 8081
             initialDelaySeconds: 3
             periodSeconds: 5

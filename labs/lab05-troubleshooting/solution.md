@@ -20,19 +20,19 @@ frontend-<hash>             0/1     ImagePullBackOff    0         2m
 oc describe pod -l app=frontend
 ```
 ```
-Warning  Failed     kubelet  Failed to pull image "docker.io/openshift/hello-openshift:v9.9.9":
+Warning  Failed     kubelet  Failed to pull image "ghcr.io/daytwo-demo/podpet:v9.9.9":
                      rpc error: ... not found
-Warning  BackOff    kubelet  Back-off pulling image "docker.io/openshift/hello-openshift:v9.9.9"
+Warning  BackOff    kubelet  Back-off pulling image "ghcr.io/daytwo-demo/podpet:v9.9.9"
 ```
 
 **CAUSA RAÍZ:** El Deployment referencia el tag `v9.9.9`, que no existe
 para esta imagen.
 
 **ARREGLO:** Edita la referencia de imagen del Deployment a
-`docker.io/openshift/hello-openshift:v3.9.0`:
+`ghcr.io/daytwo-demo/podpet:v1.0.0`:
 
 ```bash
-oc set image deployment/frontend frontend=docker.io/openshift/hello-openshift:v3.9.0
+oc set image deployment/frontend frontend=ghcr.io/daytwo-demo/podpet:v1.0.0
 ```
 
 **VALIDACIÓN:**
@@ -164,8 +164,8 @@ oc get endpoints catalog
 # -> lista dos IPs de Pod en el puerto 8080
 
 HOST=$(oc get route catalog -o jsonpath='{.spec.host}')
-curl "http://${HOST}"
-# -> catalog is running
+curl "http://${HOST}/api/pet"
+# -> {"name":"catalog","mood":80,"satiety":80,"energy":80,...}
 ```
 
 ---
@@ -191,7 +191,7 @@ notifications-<hash>          0/1     Running   0          3m
 oc describe pod -l app=notifications
 ```
 ```
-Warning  Unhealthy  kubelet  Readiness probe failed: Get "http://10.x.x.x:8081/":
+Warning  Unhealthy  kubelet  Readiness probe failed: Get "http://10.x.x.x:8081/q/health/ready":
                      dial tcp 10.x.x.x:8081: connect: connection refused
 ```
 
@@ -225,6 +225,11 @@ oc get pods -l app=notifications
   nada mal con el Pod. El bug vive completamente en el Service, algo
   fácil de pasar por alto si los estudiantes solo miran los Pods cuando
   algo está "caído".
+- `frontend`, `catalog` y `notifications` corren la misma imagen
+  (`podpet`), así que al arreglarlos van a ver la UI de la mascota. El
+  Escenario 2 (`orders`) sigue usando una imagen UBI mínima a propósito:
+  el punto ahí es la mecánica de un crash loop, no la aplicación en sí,
+  y una imagen sin servidor HTTP hace ese punto más nítido.
 
 ## Reset
 

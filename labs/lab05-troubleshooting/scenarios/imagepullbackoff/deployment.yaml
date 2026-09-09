@@ -22,12 +22,12 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: docker.io/openshift/hello-openshift:v9.9.9
+          image: ghcr.io/daytwo-demo/podpet:v9.9.9
           ports:
             - containerPort: 8080
           env:
-            - name: RESPONSE
-              value: "frontend is running"
+            - name: PET_NAME
+              value: "frontend"
 ---
 apiVersion: v1
 kind: Service

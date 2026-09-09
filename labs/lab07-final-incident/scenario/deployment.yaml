@@ -22,9 +22,9 @@ spec:
     spec:
       containers:
         - name: payments-api
-          image: docker.io/openshift/hello-openshift:v3.9.0
+          image: ghcr.io/daytwo-demo/podpet:v1.0.0
           ports:
             - containerPort: 8080
           env:
-            - name: RESPONSE
-              value: "payments-api is running"
+            - name: PET_NAME
+              value: "payments-api"
