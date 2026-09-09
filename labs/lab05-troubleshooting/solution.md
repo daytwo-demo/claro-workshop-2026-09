@@ -29,10 +29,10 @@ Warning  BackOff    kubelet  Back-off pulling image "ghcr.io/daytwo-demo/podpet:
 para esta imagen.
 
 **ARREGLO:** Edita la referencia de imagen del Deployment a
-`ghcr.io/daytwo-demo/podpet:v1.0.0`:
+`ghcr.io/daytwo-demo/podpet:v1.0.1`:
 
 ```bash
-oc set image deployment/frontend frontend=ghcr.io/daytwo-demo/podpet:v1.0.0
+oc set image deployment/frontend frontend=ghcr.io/daytwo-demo/podpet:v1.0.1
 ```
 
 **VALIDACIÓN:**

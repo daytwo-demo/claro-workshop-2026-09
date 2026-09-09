@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: podpet
-          image: ghcr.io/daytwo-demo/podpet:v1.0.0
+          image: ghcr.io/daytwo-demo/podpet:v1.0.1
           ports:
             - containerPort: 8080
           env:

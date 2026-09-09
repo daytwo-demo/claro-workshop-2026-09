@@ -126,7 +126,7 @@ Una división sugerida:
 - **Labs 1-2**: `docker.io/openshift/hello-openshift:v3.9.0`,
   deliberadamente mínima, para aprender la mecánica de
   Deployment/Service/Route/scaling sin distracciones.
-- **Labs 3-7**: `ghcr.io/daytwo-demo/podpet:v1.0.0` (PodPet), una
+- **Labs 3-7**: `ghcr.io/daytwo-demo/podpet:v1.0.1` (PodPet), una
   mascota virtual (Java/Quarkus, sin base de datos) con su propia UI,
   API, y un liveness check real ligado a sus propias stats. El código
   fuente vive en

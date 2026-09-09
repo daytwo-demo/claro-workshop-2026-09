@@ -221,7 +221,7 @@ SÍNTOMA        El Pod nunca llega a Running
 OBSERVACIÓN    oc get pods -l app=frontend muestra ImagePullBackOff
 EVIDENCIA      oc describe pod: "Failed to pull image ...podpet:v9.9.9 ... not found"
 CAUSA RAÍZ     El Deployment referencia un tag inexistente (v9.9.9)
-ARREGLO        oc set image deployment/frontend frontend=ghcr.io/daytwo-demo/podpet:v1.0.0
+ARREGLO        oc set image deployment/frontend frontend=ghcr.io/daytwo-demo/podpet:v1.0.1
 VALIDACIÓN     oc get pods -l app=frontend muestra Running, 1/1
 ```
 
