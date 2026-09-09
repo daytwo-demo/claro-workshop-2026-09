@@ -18,12 +18,41 @@
 
 ## Estación de trabajo del estudiante
 
+Dos formas de darles acceso a `oc`, elegí una:
+
+### Opción A: CLI local
+
 - CLI `oc` instalado. Si es posible, alinea la versión del cliente con
   la versión menor del clúster; un cliente una versión atrás o adelante
   de un servidor 4.18+ funciona bien para todo lo de este workshop.
 - Una terminal (bash o zsh). Todos los comandos de ejemplo usan sintaxis
   bash.
 - `curl`, para probar Routes desde la línea de comandos.
+
+### Opción B: Web Terminal (cero instalación local)
+
+Si no querés que los estudiantes instalen nada en su laptop, instalá el
+**Web Terminal Operator** en el clúster (una sola vez, antes del
+workshop):
+
+1. Como cluster-admin, en la consola web: **OperatorHub** → buscar
+   "Web Terminal" → **Install** (dejar los valores por defecto). Esto
+   instala automáticamente el DevWorkspace Operator como dependencia.
+2. Recargá la consola: aparece un ícono de terminal (`>_`) en la barra
+   superior para todos los usuarios.
+
+Cada estudiante hace clic en ese ícono y obtiene una terminal real
+dentro del navegador, ya autenticada como él mismo, con `oc` (y
+`kubectl`, `helm`, etc.) preinstalados. Solo necesita un navegador.
+
+La sesión de la terminal tiene un timeout por inactividad configurable
+(vía un recurso `DevWorkspaceOperatorConfig`). Probalo antes del
+workshop: dejá una terminal sin tocar unos minutos y confirmá que no se
+corte antes de que un estudiante típico llegue a usarla otra vez; este
+workshop tiene bastante lectura entre un comando y el siguiente.
+
+### En ambos casos
+
 - Un navegador web moderno, para las partes del workshop que usan la
   consola web de OpenShift.
 - No se requiere instalar Docker ni Podman. Este workshop nunca
