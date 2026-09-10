@@ -16,7 +16,7 @@ labs anteriores.
 
 Se te da únicamente:
 
-- **Namespace:** `ocp-workshop-${STUDENT_ID}` (tu propio project)
+- **Namespace:** tu propio project (se llama igual que tu usuario de login)
 - **Nombre de la aplicación:** `payments-api`
 - **URL de la Route:** consíguela tú mismo:
 
@@ -30,6 +30,9 @@ completado tu investigación y escrito tu reporte: hacerlo antes anula
 el propósito de este ejercicio.
 
 ## Tasks
+
+> Todos los comandos de este lab se corren desde
+> `labs/lab07-final-incident`.
 
 1. Reproduce el síntoma tú mismo (`curl` a la Route, o ábrela en un
    navegador).

@@ -5,21 +5,25 @@ raíz y `docs/prerequisites.md`.
 
 ## Antes del día uno
 
-1. Corre `./scripts/validate-environment.sh` tú mismo contra el clúster
+1. Si vas a usar el Web Terminal (recomendado), instala el **Web
+   Terminal Operator** en el clúster siguiendo
+   `docs/prerequisites.md`. Si no, asegúrate de que cada estudiante
+   tenga `oc` local.
+2. Corre `./scripts/validate-environment.sh` tú mismo contra el clúster
    de entrenamiento.
-2. Para cada estudiante, corre:
+3. Para cada estudiante, corre:
    ```bash
-   ./scripts/instructor-setup.sh <student_id>
+   ./scripts/instructor-setup.sh <usuario>
    ```
-   Esto crea `ocp-workshop-<student_id>` (si tu clúster no permite
-   creación self-service de projects, este paso es obligatorio, no
-   solo una conveniencia) y precarga los recursos que los Labs 1, 5 y 7
-   necesitan que ya estén presentes. Los estudiantes nunca aplican esos
-   manifiestos ellos mismos.
-3. Dile a cada estudiante su `STUDENT_ID` y pídele que confirme con:
+   Esto crea un project **con el mismo nombre que el usuario de login**
+   (si el usuario es `user07`, el project es `user07`), le otorga a ese
+   usuario acceso `admin` sobre el project, y precarga los recursos que
+   los Labs 1, 5 y 7 necesitan que ya estén presentes. Los estudiantes
+   nunca aplican esos manifiestos ellos mismos.
+4. Dile a cada estudiante su usuario y pídele que confirme con:
    ```bash
-   export STUDENT_ID=<id>
-   oc project ocp-workshop-${STUDENT_ID}
+   oc whoami
+   oc project
    ```
 
 ## Cronograma sugerido
@@ -101,9 +105,10 @@ raíz y `docs/prerequisites.md`.
 ## Lab 3: ConfigMaps y Secrets
 
 - **Objetivo de aprendizaje:** externalizar configuración a un
-  ConfigMap y observar el rollout resultante; crear un Secret,
-  inspeccionar sus metadata, y entender que base64 es codificación, no
-  encriptación.
+  ConfigMap y observar el rollout resultante; comprobar en vivo que
+  editar un ConfigMap no recrea los Pods por sí solo y reconciliar con
+  `rollout restart`; crear un Secret, inspeccionar sus metadata, y
+  entender que base64 es codificación, no encriptación.
 - **Duración estimada:** 30 minutos.
 - **Dificultad esperada para el estudiante:** baja-media.
 - **Cambio de aplicación:** este lab introduce **PodPet** (Java/Quarkus,
@@ -115,20 +120,24 @@ raíz y `docs/prerequisites.md`.
   `podpet-credentials`, Deployment/Service/Route `podpet`.
 - **Salida esperada:** `curl .../api/pet` devuelve `"name"` con el
   valor configurado en el ConfigMap; `oc exec` dentro del Pod muestra
-  ambos valores del Secret en el entorno.
+  ambos valores del Secret en el entorno; después del paso 6, cambiar
+  el ConfigMap no cambia la API hasta que se corre `rollout restart`.
 - **Errores comunes:** esperar que editar un ConfigMap in place, solo
-  eso, dispare un rollout nuevo (no lo hace: solo lo hace el Deployment
-  cambiado); esperar que los valores del Secret aparezcan en la
-  respuesta de la API (no aparecen: PodPet no los usa para nada);
+  eso, dispare un rollout nuevo (no lo hace: la env var se lee al
+  arrancar el contenedor); esperar que los valores del Secret aparezcan
+  en la respuesta de la API (no aparecen: PodPet no los usa para nada);
   buscar un Service `hello-openshift` que ya no aplica en este lab.
 - **Pistas que puede dar el instructor:** "Si solo cambiaste el
   ConfigMap y no el Deployment, ¿los Pods existentes se darían
-  cuenta?" "¿De dónde lee la aplicación `PET_NAME` ahora?"
+  cuenta?" "¿De dónde lee la aplicación `PET_NAME` ahora?" "¿Qué
+  comando reemplaza los Pods sin cambiar el template?"
 - **Solución completa:** ver
   `labs/lab03-configmaps-secrets/solution.md`.
 - **Procedimiento de reset:**
   ```bash
-  oc delete -f labs/lab03-configmaps-secrets/manifests/deployment.yaml \
+  oc delete -f labs/lab03-configmaps-secrets/manifests/route.yaml \
+             -f labs/lab03-configmaps-secrets/manifests/service.yaml \
+             -f labs/lab03-configmaps-secrets/manifests/deployment.yaml \
              -f labs/lab03-configmaps-secrets/manifests/secret.yaml \
              -f labs/lab03-configmaps-secrets/manifests/configmap.yaml \
              --ignore-not-found
@@ -197,7 +206,7 @@ sube en la Parte 2.
 - **Solución completa:** ver `labs/lab04-health-probes/solution.md`.
 - **Procedimiento de reset:**
   ```bash
-  oc apply -f labs/lab04-health-probes/manifests/deployment.yaml
+  oc apply -f labs/lab04-health-probes/solution/deployment.yaml
   ```
 
 ---
@@ -287,8 +296,8 @@ aplicación.
 - **Solución completa:** ver `labs/lab05-troubleshooting/solution.md`.
 - **Procedimiento de reset:**
   ```bash
-  oc delete all -l lab=lab05 -n ocp-workshop-<student_id>
-  ./scripts/instructor-setup.sh <student_id>   # o reset-student.sh, corrido por el estudiante
+  oc delete all -l lab=lab05 -n <usuario>
+  ./scripts/instructor-setup.sh <usuario>   # o reset-student.sh, corrido por el estudiante
   ```
 
 ---
@@ -347,31 +356,32 @@ VALIDACIÓN     oc rollout status reporta éxito; curl .../api/pet devuelve "App
 ```
 SÍNTOMA        La aplicación de payments no responde (curl contra la Route falla)
 OBSERVACIÓN    oc get route/svc/pods de payments-api se ven bien por separado;
-               los Pods muestran Running, 1/1... espera, en realidad Running,
-               revisa Endpoints después
-EVIDENCIA      oc get endpoints payments-api: <none>
-               oc get svc payments-api selector: app=payments-processor
-               oc get pods -l app=payments-api --show-labels: app=payments-api
-CAUSA RAÍZ     el selector del Service (app=payments-processor) no coincide con
-               las labels del Pod del Deployment (app=payments-api)
-ARREGLO        oc patch svc payments-api -p '{"spec":{"selector":{"app":"payments-api"}}}'
-VALIDACIÓN     oc get endpoints payments-api lista IPs de Pod; curl contra la Route funciona
+               los Pods muestran Running, 1/1; los Endpoints NO están vacíos
+EVIDENCIA      oc get endpoints payments-api: IPs de Pod, pero en el puerto 8081
+               oc get svc payments-api -o yaml: ports[0].targetPort = 8081
+               oc get deploy payments-api: containerPort = 8080
+CAUSA RAÍZ     el targetPort del Service (8081) no coincide con el puerto real
+               del contenedor (8080); el selector sí es correcto
+ARREGLO        oc patch svc payments-api --type=json -p '[{"op":"replace","path":"/spec/ports/0/targetPort","value":8080}]'
+VALIDACIÓN     oc get endpoints payments-api lista IPs en el puerto 8080; curl funciona
 ```
 
-Esta es, a propósito, la misma clase de falla que el Escenario 3 del
-Lab 5, sin que se les diga. Un buen tema de conversación para el
-instructor después del lab es que el reconocimiento de patrones
-operativos (no comandos nuevos) es lo que hizo más rápida esta segunda
-vez.
+Esta falla es, a propósito, **distinta** a la del Escenario 3 del Lab 5:
+allá los Endpoints estaban vacíos por un selector mal puesto; acá los
+Endpoints están poblados, lo que descarta el selector y obliga al
+estudiante a comparar puertos. Es un buen cierre: las mismas capas, un
+síntoma parecido, pero un diagnóstico que requiere leer una señal más
+fina.
 
 - **Errores comunes:** reiniciar/escalar el Deployment o eliminar Pods
-  cuando nunca hubo nada roto en ellos; "arreglar" el desajuste
-  reetiquetando los Pods para que coincidan con el Service, en vez de
-  corregir el Service (funciona, pero es la dirección equivocada:
-  señálalo si lo ves).
+  cuando nunca hubo nada roto en ellos; cambiar el selector del Service
+  por prueba y error aunque ya era correcto (el síntoma de Endpoints
+  poblados lo descarta); "arreglar" cambiando el `containerPort` del
+  Deployment a 8081 en vez de corregir el `targetPort` del Service.
 - **Pistas que puede dar el instructor (solo si un grupo está
-  realmente trabado después de ~15 minutos):** "Ya confirmaste que la
-  Route y los Pods están bien por separado, ¿qué hay entre los dos?"
+  realmente trabado después de ~15 minutos):** "Los Endpoints no están
+  vacíos, así que el selector no es. ¿Qué otra cosa define un Service
+  además de a quién selecciona?"
 - **Solución completa:** ver
   `labs/lab07-final-incident/solution.md`, incluyendo notas de
   calificación para el reporte escrito.
@@ -391,14 +401,14 @@ vez.
 Por estudiante:
 
 ```bash
-./scripts/instructor-reset.sh <student_id> --full
+./scripts/instructor-reset.sh <usuario> --full
 ```
 
 O, si los projects deben simplemente eliminarse al terminar el
 workshop:
 
 ```bash
-oc delete project ocp-workshop-<student_id>
+oc delete project <usuario>
 ```
 
 Nunca corras un comando de limpieza que no esté acotado al nombre de

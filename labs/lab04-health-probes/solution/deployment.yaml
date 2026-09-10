@@ -1,0 +1,59 @@
+# Lab 4 - versión completa y sana del Deployment, con los probes
+# apuntando al puerto real del contenedor. Es la misma que el estudiante
+# arma al completar los TODO de manifests/deployment.yaml. Se usa para
+# restaurar un estado conocido bueno (cleanup del lab, reset del
+# instructor) sin depender de que el estudiante haya editado su copia.
+#
+#   oc apply -f solution/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podpet
+  labels:
+    app: podpet
+    lab: lab04
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: podpet
+  template:
+    metadata:
+      labels:
+        app: podpet
+        lab: lab04
+    spec:
+      containers:
+        - name: podpet
+          image: ghcr.io/daytwo-demo/podpet:v1.0.1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: podpet-config
+                  key: PET_NAME
+            - name: SECRET_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: podpet-credentials
+                  key: username
+            - name: SECRET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: podpet-credentials
+                  key: password
+          readinessProbe:
+            httpGet:
+              path: /q/health/ready
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /q/health/live
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 2

@@ -18,6 +18,9 @@ configuración de rutina), después vas a intentar publicar la versión 3
 
 ## Tasks
 
+> Todos los comandos de este lab se corren desde
+> `labs/lab06-rollout-rollback`.
+
 ### 1. Desplegar la revisión 1
 
 ```bash
@@ -30,6 +33,11 @@ HOST=$(oc get route podpet -o jsonpath='{.spec.host}')
 curl "http://${HOST}/api/pet"
 # -> "name":"Application version 1"
 ```
+
+> **Nota:** este manifiesto reemplaza al Deployment `podpet` que dejó el
+> Lab 4. A propósito no incluye los probes ni las variables del Secret:
+> el foco acá es el rollout, así que el template vuelve a ser mínimo.
+> Que los probes "desaparezcan" no es un error.
 
 ### 2. Publicar la revisión 2
 

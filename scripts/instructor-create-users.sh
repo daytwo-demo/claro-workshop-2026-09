@@ -157,5 +157,6 @@ echo "    (no por email/chat en texto plano si podés evitarlo) y borra el archi
 echo "    local después de repartirlas."
 echo "  - El OAuth operator puede tardar 1-2 minutos en aplicar el cambio; los"
 echo "    logins nuevos pueden fallar hasta entonces."
-echo "  - Esto NO habilita creación self-service de projects. Si tu clúster no la"
-echo "    tiene habilitada, seguí usando ./scripts/instructor-setup.sh por estudiante."
+echo "  - Después, por cada usuario, corré ./scripts/instructor-setup.sh <usuario>"
+echo "    para crear su project (con el mismo nombre que el usuario), darle acceso"
+echo "    y precargar los recursos que los labs necesitan."

@@ -27,6 +27,9 @@ simple. Lee su texto de respuesta desde la variable de entorno
 
 ## Tasks
 
+> Todos los comandos de este lab se corren desde
+> `labs/lab02-deploy-application`.
+
 ### 1. Desplegar
 
 Abre `manifests/deployment.yaml`. Tiene dos espacios en blanco para que

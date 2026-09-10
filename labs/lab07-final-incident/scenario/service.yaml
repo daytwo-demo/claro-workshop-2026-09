@@ -1,6 +1,8 @@
-# Configuración del incidente del Lab 7. El selector de abajo, a
-# propósito, no coincide con las labels del Pod en deployment.yaml. No
-# leas este archivo hasta después de haber entregado tu reporte de
+# Configuración del incidente del Lab 7. El selector del Service SÍ
+# coincide con las labels de los Pods, pero el mapa de puertos apunta al
+# targetPort equivocado (8081) en vez del puerto real del contenedor
+# (8080). Los Endpoints van a existir, y aun así el tráfico no llega.
+# No leas este archivo hasta después de haber entregado tu reporte de
 # incidente.
 apiVersion: v1
 kind: Service
@@ -11,8 +13,8 @@ metadata:
     lab: lab07
 spec:
   selector:
-    app: payments-processor
+    app: payments-api
   ports:
     - name: http
       port: 8080
-      targetPort: 8080
+      targetPort: 8081

@@ -108,5 +108,5 @@ consecuencia.
 ## Reset
 
 ```bash
-oc apply -f manifests/deployment.yaml
+oc apply -f solution/deployment.yaml
 ```

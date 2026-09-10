@@ -68,15 +68,26 @@ curl "http://${HOST}/api/pet"
 # -> {"name":"Configstein","mood":80,"satiety":80,"energy":80,"aliveSeconds":...,"status":"feliz"}
 
 oc exec deploy/podpet -- printenv SECRET_USERNAME SECRET_PASSWORD
+
+# paso 6: cambiar el ConfigMap y reconciliar
+oc patch configmap podpet-config --type merge -p '{"data":{"PET_NAME":"Mudanza"}}'
+oc rollout status deployment/podpet        # no hay rollout nuevo
+oc get pods -l app=podpet                  # los Pods no cambian
+curl "http://${HOST}/api/pet"              # sigue el nombre viejo
+oc rollout restart deployment/podpet
+oc rollout status deployment/podpet
+curl "http://${HOST}/api/pet"              # ahora sí, "Mudanza"
 ```
 
 ## Puntos de enseñanza
 
 - Editar un ConfigMap in place **no** dispara, por sí solo, un rollout
   nuevo para los Pods que lo referencian vía `configMapKeyRef`: la
-  variable de entorno solo se lee al arrancar el contenedor. Un
-  Deployment nuevo (como el que se aplica en este lab) sí dispara un
-  rollout, porque cambia el Pod template.
+  variable de entorno solo se lee al arrancar el contenedor. El paso 6
+  del lab lo demuestra en vivo: cambiar el ConfigMap deja la API
+  devolviendo el valor viejo hasta que se reemplazan los Pods con
+  `oc rollout restart`. Un Deployment nuevo (como el que se aplica en
+  los pasos 1-3) sí dispara un rollout porque cambia el Pod template.
 - La codificación base64 de los datos de un Secret es para transporte
   seguro dentro de un documento JSON/YAML, no confidencialidad.
   `oc get secret -o yaml` más `base64 -d` es todo lo que hace falta

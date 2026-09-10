@@ -28,6 +28,9 @@ endurecimiento adicional.
 
 ## Tasks
 
+> Todos los comandos de este lab se corren desde
+> `labs/lab03-configmaps-secrets`.
+
 ### 1. Crear el ConfigMap
 
 Completa el TODO en `manifests/configmap.yaml` (elige un nombre para
@@ -123,6 +126,40 @@ el entorno del contenedor directamente, no la respuesta de la API):
 oc exec deploy/podpet -- printenv SECRET_USERNAME SECRET_PASSWORD
 ```
 
+### 6. Cambiar el ConfigMap y reconciliar
+
+Ahora que el Deployment ya está corriendo, cambia el nombre de la
+mascota **solo en el ConfigMap** y observa qué pasa:
+
+```bash
+oc patch configmap podpet-config --type merge -p '{"data":{"PET_NAME":"Mudanza"}}'
+oc rollout status deployment/podpet
+oc get pods -l app=podpet
+HOST=$(oc get route podpet -o jsonpath='{.spec.host}')
+curl "http://${HOST}/api/pet"
+```
+
+`oc rollout status` no va a esperar ningún rollout nuevo y los Pods
+**no** se recrean: la respuesta de la API sigue devolviendo el nombre
+viejo. Eso es porque una variable inyectada con `configMapKeyRef` se
+lee **una sola vez, al arrancar el contenedor**; editar el ConfigMap no
+toca a los Pods que ya están corriendo.
+
+Para que el cambio llegue a la aplicación hay que reemplazar los Pods,
+por ejemplo con:
+
+```bash
+oc rollout restart deployment/podpet
+oc rollout status deployment/podpet
+curl "http://${HOST}/api/pet"
+```
+
+Ahora sí, la API devuelve el nombre nuevo. `rollout restart` es la
+herramienta para tomar un cambio externo (contenido de un ConfigMap o
+un Secret) que por sí solo no dispara una revisión nueva. No es lo
+mismo que `rollout undo` (Lab 6), que revierte a una revisión anterior
+del Deployment.
+
 ## Comandos útiles
 
 ```bash
@@ -131,7 +168,9 @@ oc get configmap
 oc get secret
 oc describe secret <nombre>
 oc get secret <nombre> -o jsonpath='{.data.<key>}' | base64 -d
+oc patch configmap <nombre> --type merge -p '{"data":{"KEY":"valor"}}'
 oc rollout status deployment/<nombre>
+oc rollout restart deployment/<nombre>
 oc exec deploy/<nombre> -- printenv <VAR>
 ```
 
@@ -141,6 +180,9 @@ oc exec deploy/<nombre> -- printenv <VAR>
   el ConfigMap.
 - `oc exec` dentro del Pod muestra `SECRET_USERNAME=workshop` y
   `SECRET_PASSWORD=openshift123` en el entorno.
+- Después de cambiar el ConfigMap, los Pods no se recrean y la API
+  sigue devolviendo el valor anterior hasta que corres `rollout
+  restart`.
 - Puedes explicar, en una frase, por qué base64 no es encriptación.
 
 ## Limpieza

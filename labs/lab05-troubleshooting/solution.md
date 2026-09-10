@@ -83,20 +83,18 @@ Last State:     Terminated
 proceso de larga duración para que el kubelet lo mantenga vivo.
 
 **ARREGLO:** Reemplaza el comando por uno que corra de forma continua
-en vez de salir:
-
-```yaml
-command:
-  - /bin/sh
-  - -c
-  - "echo 'orders: starting'; sleep infinity"
-```
+en vez de salir. La forma más rápida es parchear el `command` del
+contenedor:
 
 ```bash
-oc apply -f - <<'EOF'
-# (aplicar acá el manifiesto de Deployment corregido)
-EOF
+oc patch deployment orders --type=json \
+  -p '[{"op":"replace","path":"/spec/template/spec/containers/0/command","value":["/bin/sh","-c","echo \"orders: starting\"; sleep infinity"]}]'
+oc rollout status deployment/orders
 ```
+
+También sirve editar `scenarios/crashloopbackoff/deployment.yaml`
+(cambiando `command` por un proceso de larga duración) y reaplicarlo
+con `oc apply -f scenarios/crashloopbackoff/deployment.yaml`.
 
 **VALIDACIÓN:**
 

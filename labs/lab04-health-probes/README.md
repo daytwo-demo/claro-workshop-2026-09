@@ -35,6 +35,9 @@ PodPet expone dos endpoints de salud reales, provistos por Quarkus:
 
 ## Tasks
 
+> Todos los comandos de este lab se corren desde
+> `labs/lab04-health-probes`.
+
 ### 1. Agregar probes que funcionen
 
 Completa los dos TODO en `manifests/deployment.yaml`: ambos probes
@@ -145,8 +148,14 @@ curl -X POST http://<host>/api/pet/neglect
 ## Limpieza
 
 No hace falta antes del Lab 5, que usa nombres de aplicación distintos
-en sus propios escenarios. Si quieres quitar los probes por ahora:
+en sus propios escenarios. Si después del paso 5 quieres volver a un
+estado sano conocido (por ejemplo, si aplicaste la variante con la
+readiness rota y no la reparaste), aplica la versión completa con los
+probes correctos:
 
 ```bash
-oc apply -f manifests/deployment.yaml
+oc apply -f solution/deployment.yaml
 ```
+
+Ese manifiesto define ambos probes en el puerto real (`8080`), así que
+no depende de que hayas completado tu copia de `manifests/deployment.yaml`.

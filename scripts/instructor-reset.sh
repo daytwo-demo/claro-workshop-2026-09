@@ -4,8 +4,8 @@
 # permission), or when a project is in a state you'd rather rebuild than
 # repair.
 #
-# Only ever touches ocp-workshop-<student_id>. Never deletes the project
-# of any other student, and never operates on more than one project per
+# The project name is exactly the student's login username. Only ever
+# touches that one project. Never operates on more than one project per
 # invocation.
 #
 # Usage:
@@ -14,24 +14,24 @@
 
 set -euo pipefail
 
-STUDENT_ID="${1:-}"
+USERNAME="${1:-}"
 MODE="${2:-}"
 
-if [[ -z "${STUDENT_ID}" ]]; then
-  echo "Usage: $0 <student_id> [--full]" >&2
+if [[ -z "${USERNAME}" ]]; then
+  echo "Usage: $0 <username> [--full]" >&2
   echo "Example: $0 user01" >&2
   echo "  --full also deletes and recreates the project itself, instead of" >&2
   echo "  just clearing lab-created objects inside it." >&2
   exit 1
 fi
 
-if ! [[ "${STUDENT_ID}" =~ ^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$ ]]; then
-  echo "ERROR: student id '${STUDENT_ID}' is not valid." >&2
+if ! [[ "${USERNAME}" =~ ^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$ ]]; then
+  echo "ERROR: username '${USERNAME}' is not valid." >&2
   echo "Use lowercase letters, digits, and hyphens only (e.g. user01)." >&2
   exit 1
 fi
 
-PROJECT="ocp-workshop-${STUDENT_ID}"
+PROJECT="${USERNAME}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if ! command -v oc >/dev/null 2>&1; then
@@ -54,7 +54,8 @@ if [[ "${MODE}" == "--full" ]]; then
     fi
     sleep 2
   done
-  oc new-project "${PROJECT}" --display-name="OpenShift Workshop - ${STUDENT_ID}" >/dev/null
+  oc new-project "${PROJECT}" --display-name="OpenShift Workshop - ${USERNAME}" >/dev/null
+  oc adm policy add-role-to-user admin "${USERNAME}" -n "${PROJECT}" >/dev/null
 else
   echo "Clearing lab-created objects in project '${PROJECT}'..."
   oc delete deployment,service,route,configmap,secret,pod \

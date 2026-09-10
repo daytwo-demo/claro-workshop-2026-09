@@ -18,16 +18,23 @@ aplicación desconocida en un clúster al que acabas de unirte.
 
 ## Tasks
 
+Si abriste tu terminal desde el ícono de la consola web (Web Terminal),
+vas a ver un Pod extra en tu project (algo como
+`workspace<id>-<hash>`): es el que corre tu propia terminal, no algo
+que crearon los labs. Ignóralo en las cuentas de abajo.
+
 1. Confirma quién eres y en qué project estás trabajando.
 
 2. Lista los projects a los que tienes acceso. Confirma que puedes ver
-   (y que estás usando) `ocp-workshop-${STUDENT_ID}`.
+   (y que estás usando) el project que te asignó tu instructor (se
+   llama igual que tu usuario de login).
 
 3. Lista los nodes del clúster. No se espera que administres nodes
    como usuario regular, pero deberías poder ver cuántos existen y su
    estado.
 
-4. Lista los Pods de tu project. Anota cuántos hay.
+4. Lista los Pods de tu project. Anota cuántos hay (sin contar el de
+   tu propia terminal, si corresponde).
 
 5. Lista los Deployments de tu project.
 

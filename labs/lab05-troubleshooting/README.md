@@ -23,6 +23,9 @@ Las cuatro aplicaciones son: `frontend`, `orders`, `catalog` y
 
 ## Tasks
 
+> Todos los comandos de este lab se corren desde
+> `labs/lab05-troubleshooting`.
+
 ### Escenario 1: `frontend`
 
 ```bash

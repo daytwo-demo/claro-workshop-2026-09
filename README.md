@@ -30,19 +30,19 @@ Ver [`docs/prerequisites.md`](docs/prerequisites.md) para la lista
 completa. En resumen, cada estudiante necesita:
 
 - Acceso a un clúster de OpenShift (4.18+) y un juego de credenciales.
-- El CLI `oc` instalado localmente, en una versión igual o cercana a la
-  del clúster.
-- Permiso para crear un Project (namespace) propio, o un instructor que
-  lo cree en su nombre.
+- Un navegador web. El **Web Terminal** de la consola web da acceso a
+  `oc` sin instalar nada; el CLI `oc` local es una alternativa opcional.
+- Un project (namespace) con el mismo nombre que tu usuario, provisto
+  por el instructor con los permisos necesarios.
 - Ningún task de estudiante requiere ni asume acceso de cluster-admin.
 
-## Cómo iniciar sesión
+## Cómo entrar
 
-```bash
-oc login --server=<cluster-api-url> -u <username> -p <password>
-# o, con un token copiado desde la consola web:
-oc login --server=<cluster-api-url> --token=<token>
-```
+No hace falta instalar nada localmente. Entra a la consola web del
+clúster (te la da tu instructor), inicia sesión con tu usuario y
+contraseña, y abre el **Web Terminal** desde el ícono de terminal
+(`>_`) en la barra superior. Ese Web Terminal ya trae `oc` autenticado
+con tu usuario.
 
 Confirma que iniciaste sesión con el usuario esperado:
 
@@ -50,55 +50,54 @@ Confirma que iniciaste sesión con el usuario esperado:
 oc whoami
 ```
 
-## Definir tu STUDENT_ID
-
-Cada ejercicio de este workshop está acotado a un project (namespace)
-único para ti. Nada se comparte entre estudiantes, y ningún lab
-hardcodea un solo namespace para todos.
-
-Define esto una vez por sesión de terminal, antes de empezar cualquier
-lab:
+Si prefieres usar tu propio `oc` local en vez del Web Terminal, también
+puedes:
 
 ```bash
-export STUDENT_ID=user01
+oc login --server=<cluster-api-url> -u <username> -p <password>
+# o, con un token copiado desde la consola web:
+oc login --server=<cluster-api-url> --token=<token>
 ```
 
-Usa el identificador que te asignó tu instructor (por ejemplo `user07`,
-`jdoe`, etc). Todos los scripts e instrucciones de los labs derivan el
-nombre de tu project a partir de él:
+## Tu project
 
-```
-ocp-workshop-${STUDENT_ID}
-```
+Cada ejercicio de este workshop está acotado a un project (namespace)
+único para ti. Tu project se llama **exactamente igual que tu usuario de
+login**: si entras como `user07`, tu project es `user07`. Nada se
+comparte entre estudiantes, y ningún lab hardcodea un solo namespace
+para todos.
 
-Es decir, `STUDENT_ID=user01` corresponde al project
-`ocp-workshop-user01`.
+Tu instructor ya creó ese project y te dio los permisos que necesitas,
+y precargó algunos recursos que ciertos labs necesitan. No tienes que
+crear el project ni definir ninguna variable.
 
-## Cómo se crea tu project
-
-Según cómo esté configurado el clúster de tu instructor, una de estas
-dos cosas es cierta:
-
-1. **Self-service**: creas tu propio project corriendo
-   `scripts/setup-student.sh`, que ejecuta `oc new-project
-   ocp-workshop-${STUDENT_ID}` en tu nombre.
-2. **Provisto por el instructor**: tu instructor ya corrió
-   `scripts/instructor-setup.sh ${STUDENT_ID}` por ti, lo que creó el
-   project y precargó algunos recursos que ciertos labs necesitan. En
-   ese caso, solo corre `oc project ocp-workshop-${STUDENT_ID}` para
-   entrar en él.
-
-De cualquier forma, confirma siempre que estás en el project correcto
-antes de empezar un lab:
+Confirma siempre que estás en el project correcto antes de empezar un
+lab:
 
 ```bash
 oc project
 ```
 
+## Clona el repositorio del workshop
+
+Los labs aplican manifiestos que viven en este repositorio. Clónalo una
+vez, dentro del Web Terminal (o en tu máquina, si usas `oc` local):
+
+```bash
+git clone https://github.com/daytwo-demo/claro-workshop-2026-09.git
+cd claro-workshop-2026-09
+```
+
+Cada lab asume que estás dentro de su propia carpeta antes de correr los
+comandos. Por ejemplo, el Lab 3 se corre desde
+`labs/lab03-configmaps-secrets`. Cada README de lab usa rutas relativas
+(`manifests/...`, `broken/...`, `scenario/...`) a esa carpeta.
+
 ## Orden y duración de los labs
 
-Trabaja los labs en orden. Cada uno construye sobre el estado que dejó
-el anterior.
+Trabaja los labs en orden: cada uno reutiliza lo aprendido en los
+anteriores, y varios continúan el estado del lab previo (por ejemplo,
+Labs 3 y 4 usan el mismo Deployment `podpet`).
 
 | # | Lab | Duración aprox. |
 |---|-----|-------------------|
@@ -131,8 +130,11 @@ Una división sugerida:
   API, y un liveness check real ligado a sus propias stats. El código
   fuente vive en
   [`claro-workshop-2026-09-app`](https://github.com/daytwo-demo/claro-workshop-2026-09-app).
+- **Lab 5 (escenario de CrashLoop)**: `registry.access.redhat.com/ubi9/ubi-minimal:9.4`,
+  una imagen base sin servidor HTTP, para que el foco sea la mecánica de
+  un crash loop y no la aplicación.
 
-Ambas son imágenes ya publicadas: ningún lab las construye.
+Todas son imágenes ya publicadas: ningún lab las construye.
 
 ## Reiniciar tu entorno
 
@@ -140,13 +142,14 @@ Si un lab deja tu project en un estado que no entiendes, o simplemente
 quieres empezar de nuevo, corre:
 
 ```bash
-./scripts/reset-student.sh ${STUDENT_ID}
+./scripts/reset-student.sh
 ```
 
-Esto restaura tu project a su estado inicial conocido, sin tocar el
-project de ningún otro estudiante. Si el script reporta que no tiene
-permiso para recrear tu project, pide a tu instructor que corra
-`scripts/instructor-reset.sh ${STUDENT_ID}` en su lugar.
+El script detecta tu project a partir de `oc whoami`, y lo restaura a
+su estado inicial conocido, sin tocar el project de ningún otro
+estudiante. Si el script reporta que no tiene permiso para limpiar tu
+project, pide a tu instructor que corra
+`scripts/instructor-reset.sh <tu-usuario>` en su lugar.
 
 El README de cada lab también tiene su propia sección de **Limpieza**
 para una limpieza acotada a ese lab, que no requiere un reinicio
@@ -171,7 +174,7 @@ labs/lab04.../            Health probes
 labs/lab05.../            Troubleshooting (cuatro escenarios)
 labs/lab06.../            Rollout y rollback
 labs/lab07.../            Incidente final
-scripts/                  Scripts de setup, reset y validación
+scripts/                  Scripts de provisioning del instructor, reset y validación
 ```
 
 ## Repositorios relacionados

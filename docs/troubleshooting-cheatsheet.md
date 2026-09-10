@@ -56,6 +56,12 @@ significa que el selector del Service no coincide con ningún Pod
 Ready. Esta es una de las causas más comunes de "la aplicación está
 caída" cuando los Pods se ven bien.
 
+Ojo: **Endpoints poblados no garantizan que el camino funcione**. Si
+los Endpoints existen pero muestran el puerto equivocado, el selector
+está bien pero el `targetPort` del Service no: el tráfico llega al Pod
+y la conexión se rechaza. En ese caso el problema está en
+`spec.ports[].targetPort`, no en el selector.
+
 ## 4. Pods
 
 ```bash
@@ -129,6 +135,7 @@ revisión anterior estaba bien antes de recurrir a `rollout undo`.
 | `oc logs <pod> --previous` | Salida del último contenedor que crasheó |
 | `oc get events --sort-by=.lastTimestamp` | Events recientes observados por el clúster |
 | `oc get svc` | Puertos y selector del Service |
+| `oc get deploy <nombre> -o yaml` | Puerto real del contenedor (`containerPort`) para comparar contra el `targetPort` del Service |
 | `oc get endpoints` | IPs de backend reales detrás de un Service |
 | `oc get endpointslices` | Lo mismo, en la API más nueva |
 | `oc get routes` | Hostnames externos y service/puerto de destino |
@@ -136,10 +143,12 @@ revisión anterior estaba bien antes de recurrir a `rollout undo`.
 | `oc rollout status deployment/<nombre>` | ¿El rollout actual está completo? |
 | `oc rollout history deployment/<nombre>` | Revisiones pasadas |
 
-## Dos cosas que reiniciar un Pod nunca arregla
+## Tres cosas que reiniciar un Pod nunca arregla
 
 - Un **selector de Service** mal configurado: los Pods están bien, el
   Service apunta a la label equivocada.
+- Un **puerto (`targetPort`) de Service** mal configurado: el selector
+  está bien y hasta hay Endpoints, pero apuntan al puerto equivocado.
 - Una **configuración de Deployment** mal hecha (tag de imagen
   incorrecto, path de probe incorrecto): reiniciar un Pod solo recrea
   la misma configuración rota.
